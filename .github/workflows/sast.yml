@@ -1,8 +1,10 @@
-name: Perform Mixeway Scan
+name: Perform a Mixeway scan
+
 on:
   push
 
-mixeway-scan:
+jobs:
+  mixeway-scan:
     name: Mixeway Scanning
     runs-on: ubuntu-latest
     steps:
@@ -25,4 +27,5 @@ mixeway-scan:
           MIXEWAY_PROJECT_ID: ${{ secrets.MIXEWAY_PROJECT_ID }}
         run: |
           docker run -e OSS_USERNAME="$OSS_USERNAME" -e OSS_KEY="$OSS_KEY" -e MIXEWAY_URL=https://hub.mixeway.io -e MIXEWAY_KEY="$MIXEWAY_KEY" -e MIXEWAY_PROJECT_ID="$MIXEWAY_PROJECT_ID" -e MODE=STANDALONE -e MIXEWAY_PROJECT_NAME="$MIXEWAY_PROJECT_NAME" -e COMMIT_ID=${GITHUB_SHA} -e BRANCH=${GITHUB_REF} -e SOURCES_LOCATION=/opt/sources/ -v ${GITHUB_WORKSPACE}:/opt/sources mixeway/scanner:latest
+
 
