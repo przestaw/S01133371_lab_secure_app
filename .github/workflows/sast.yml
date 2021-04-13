@@ -1,25 +1,28 @@
 name: Perform Mixeway Scan
 on:
-  push:
-    branches:
-      - 'master'
+  push
 
-jobs:
-  mixeway-scan:
+mixeway-scan:
     name: Mixeway Scanning
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Prepare variables
         id: vars
         shell: bash
         run: |
-          echo "##[set-output name=branch;]$(echo${GITHUB_REF#refs/heads/})"
-          echo "::set-output name=sha_short::$(git rev-parse HEAD)"
-      - name: Prepare Mixeway docker image
+          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+          echo "##[set-output name=sha_short;]$(git rev-parse HEAD)"
+      - name: Prepare the Mixeway docker image
         run: |
           docker pull mixeway/scanner:latest
-      - name: Run Scan
+      - name: Run the scan
+        env:
+          OSS_USERNAME: ${{ secrets.OSS_USERNAME }}
+          OSS_KEY: ${{ secrets.OSS_KEY }}
+          MIXEWAY_KEY: ${{ secrets.MIXEWAY_KEY }}
+          MIXEWAY_PROJECT_NAME: ${{ secrets.MIXEWAY_PROJECT_NAME }}
+          MIXEWAY_PROJECT_ID: ${{ secrets.MIXEWAY_PROJECT_ID }}
         run: |
-          docker run -e MODE=STANDALONE -e OSS_USERNAME=${{ secrets.oss_username }} -e OSS_KEY=${{ secrets.oss_key }} -e COMMIT_ID=${{ steps.vars.outputs.sha_short }} -e BRANCH=${{ steps.vars.outputs.branch }} -e MIXEWAY_URL=https://hub.mixeway.io -e  MIXEWAY_PROJECT_NAME=${{ github.event.repository.name }} -e MIXEWAY_PROJECT_ID=${{ secrets.mixeway_project_id }} -e MIXEWAY_KEY=${{ secrets.mixeway_key }} -v $PWD:/opt/sources mixeway/scanner:latest
+          docker run -e OSS_USERNAME="$OSS_USERNAME" -e OSS_KEY="$OSS_KEY" -e MIXEWAY_URL=https://hub.mixeway.io -e MIXEWAY_KEY="$MIXEWAY_KEY" -e MIXEWAY_PROJECT_ID="$MIXEWAY_PROJECT_ID" -e MODE=STANDALONE -e MIXEWAY_PROJECT_NAME="$MIXEWAY_PROJECT_NAME" -e COMMIT_ID=${GITHUB_SHA} -e BRANCH=${GITHUB_REF} -e SOURCES_LOCATION=/opt/sources/ -v ${GITHUB_WORKSPACE}:/opt/sources mixeway/scanner:latest
 
